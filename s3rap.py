@@ -11,6 +11,16 @@ def delete_key(bucket, key):
 def get_key(bucket, key):
     return s3_resource.Object(bucket, key).get()["Body"].read()
 
+# def copy_key(bucket, src_key, dst_key):
+#     return s3_client.copy_object(Bucket=bucket, CopySource=src_key, Key=dst_key)
+
+# def copy_key(src_bucket, src_key):
+#     return s3_resource.Object(src_bucket, src_key)
+
+def copy_key(src_bucket, src_key, dst_bucket, dst_key):
+    return s3_resource.Object(dst_bucket, dst_key).copy_from(CopySource=src_bucket+'/'+src_key)
+
+
 def exists_key(key, bucket):
     bucket = s3_resource.Bucket(bucket)
     objs = list(bucket.objects.filter(Prefix=key))
