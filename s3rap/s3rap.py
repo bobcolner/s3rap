@@ -1,37 +1,47 @@
 import os
 import gzip
 import boto3
+import logging
 
-s3_resource = boto3.resource('s3')
-s3_client = boto3.client('s3')
+_resource = boto3.resource('s3')
+_client = boto3.client('s3')
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 def delete_object(bucket, key):
     "Delete an object"
-    return s3_resource.Object(bucket, key).delete()
+    _resource.Object(bucket, key).delete()
+    _logger.info('deleted object: {0}'.format(key))
 
 def get_object(bucket, key):
     "Download an object into memory"
-    return s3_resource.Object(bucket, key).get()["Body"].read()
+    data = _resource.Object(bucket, key).get()["Body"].read()
+    _logger.info('downlated object: {0}'.format(key))
+    return data
 
 def copy_object(src_bucket, src_key, dst_bucket, dst_key):
     "Copy an object to a new S3 location"
-    return s3_resource.Object(dst_bucket, dst_key).copy_from(CopySource=src_bucket+'/'+src_key)
+    src_path = os.path.join(src_bucket, src_key)
+    _resource.Object(dst_bucket, dst_key).copy_from(CopySource=src_path)
+    _logger.info('copying object from: {0} to:{1}'.format(src_key, dst_key))
 
-def exists_object(key, bucket):
+def exists_object(bucket, key):
     "Check if an object exists in S3"
-    results = s3_client.list_objects(Bucket=bucket, Prefix=key)
+    results = _client.list_objects(Bucket=bucket, Prefix=key)
     return 'Contents' in results
 
 def download_object(bucket, key, file_name=None):
     "Download object to local file"
     if file_name is None:
         file_name = key.split('/')[-1]
-    s3_resource.Bucket(bucket).download_file(Key=key, Filename=file_name)
+    _resource.Bucket(bucket).download_file(Key=key, Filename=file_name)
+    _logger.info('downloaded object: {0}'.format(key))
 
 def get_gzip_object(bucket, key):
     "Download and un-gzip object into memory"
-    data_gzip = get_object(bucket, key)
+    datagzip = get_object(bucket, key)
     data_b = gzip.decompress(data_gzip)
+    _logger.info('downloaded gziped object: {0}'.format(key))
     return data_b.decode("utf-8")
 
 def download_gzip_object(bucket, key):
@@ -39,6 +49,7 @@ def download_gzip_object(bucket, key):
     file_path = key.split('/')[-1]
     download_object(bucket, key, file_path)
     out_file = un_gzip(file_path)
+    _logger.info('downloaded gziped object: {0}'.format(key))
     return out_file
 
 def un_gzip(file_path):
@@ -58,27 +69,30 @@ def upload_file(bucket, key, local_file):
     with open(local_file, 'rb') as file_in, gzip.open(gzip_file, 'wb') as gzip_out:
         gzip_out.writelines(file_in)
     try:
-        s3_resource.Bucket(bucket).upload_file(Filename=gzip_file, Key=key, 
+        _resource.Bucket(bucket).upload_file(Filename=gzip_file, Key=key, 
             ExtraArgs={'ContentType':'application/x-gzip', 'ServerSideEncryption':'AES256'})
     finally:
+        _logger.info('uploaded object: {0}'.format(key))
         os.remove(gzip_file)
 
 def list_buckets():
     "List accessable buckets"
-    buckets = s3_client.list_buckets()
-    return [b['Name'] for b in buckets['Buckets']]
+    buckets = _client.list_buckets()
+    return [ b['Name'] for b in buckets['Buckets'] ]
 
 def create_bucket(bucket):
     "Create bucket"
-    return s3_resource.create_bucket(Bucket=bucket)
+    _resource.create_bucket(Bucket=bucket)
+    _logger.info('created bucket: {0}'.format(bucket))
 
 def delete_bucket(bucket):
     "Delete bucket"
-    return s3_client.delete_bucket(Bucket=bucket)
+    _client.delete_bucket(Bucket=bucket)
+    _logger.info('deleted bucket: {0}'.format(bucket))
 
 def list_objects(bucket, prefix=''):
     "List object in S3 bucket"
-    bucket = s3_resource.Bucket(bucket)
+    bucket = _resource.Bucket(bucket)
     return [{'key': b.key, 
             'size_mb': round(b.size / 1000000, 1), 
             'last_modified': b.last_modified.strftime('%Y-%m-%dT%H:%M:%S')} 
@@ -86,5 +100,7 @@ def list_objects(bucket, prefix=''):
 
 def gen_tmp_get_url(bucket, key, exp_secs=100):
     "Genereate a tempory URL to access an S3 object"
-    return s3_client.generate_presigned_url('get_object',
-        Params={'Bucket': bucket, 'Key': key}, ExpiresIn=exp_secs)
+    temp_url = _client.generate_presigned_url('get_object',
+        Params = {'Bucket': bucket, 'Key': key}, ExpiresIn=exp_secs)
+    _logger.info('generated tempory url: {0} expires in: {1} seconds'.format(key, exp_secs))
+    return temp_url
