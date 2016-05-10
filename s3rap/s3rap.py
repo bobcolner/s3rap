@@ -6,7 +6,6 @@ import logging
 _resource = boto3.resource('s3')
 _client = boto3.client('s3')
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.DEBUG)
 
 def delete_object(bucket, key):
     "Delete an object"
