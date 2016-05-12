@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-VERSION = '0.2'
+VERSION = '0.3'
 
 setup(
     name = 's3rap',
@@ -19,7 +19,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
         'Topic :: Internet :: WWW/HTTP',
