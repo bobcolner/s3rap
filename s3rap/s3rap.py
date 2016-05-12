@@ -58,7 +58,6 @@ def un_gzip(file_path):
     else:
         out_file = file_path + '.un-gziped'
     with gzip.open(file_path, 'rb') as gzip_f, open(out_file, 'wb') as out_f:
-        # refactor with itorator
         data_b = gzip_f.read()
         out_f.write(data_b)
     return out_file
