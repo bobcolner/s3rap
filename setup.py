@@ -30,5 +30,5 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         ],
-    install_requires = [ i.strip() for i in open("requirements.txt").readlines() ]
+    install_requires = ['boto3 >=1.3.0, <2.0']
 )
