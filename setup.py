@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-VERSION = '0.3'
+VERSION = '0.4'
 
 setup(
     name = 's3rap',
