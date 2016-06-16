@@ -48,8 +48,8 @@ def upload_file(bucket, key, local_file):
         gzip_out.writelines(file_in)
     try:
         s3resource.Bucket(bucket).upload_file(
-            Filename = gzip_file, 
-            Key = key, 
+            Filename = gzip_file,
+            Key = key,
             ExtraArgs = {
                 'ContentType': 'application/x-gzip',
                 'ServerSideEncryption': 'AES256'
@@ -81,8 +81,8 @@ def list_objects(bucket, prefix=''):
     results = []
     for obj in bucket.objects.filter(Prefix=prefix):
         obj_meta = {
-            'key': obj.key, 
-            'size_mb': round(obj.size / 1000000, 1), 
+            'key': obj.key,
+            'size_mb': round(obj.size / 1000000, 1),
             'last_modified': obj.last_modified.strftime('%Y-%m-%dT%H:%M:%S')
         }
         results.append(obj_meta)
