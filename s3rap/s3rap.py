@@ -2,9 +2,10 @@ import logging
 import os
 import gzip
 import boto3
+from botocore.client import Config
 
-s3resource = boto3.resource('s3')
-s3client = boto3.client('s3')
+s3resource = boto3.resource('s3', config=Config(signature_version='s3v4'))
+s3client = boto3.client('s3', config=Config(signature_version='s3v4'))
 logger = logging.getLogger(__name__)
 
 def get_object(bucket, key):
